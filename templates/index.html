@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Club de Ciencias</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+            margin: 0;
+            padding: 30px;
+        }
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+        h1 {
+            color: #1e3c72;
+            border-bottom: 3px solid #2a5298;
+            padding-bottom: 10px;
+            margin-top: 0;
+            font-size: 24px;
+        }
+        h2 {
+            color: #2a5298;
+            font-size: 18px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+        .btn {
+            display: inline-block;
+            background-color: #2a5298;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 14px;
+            transition: background 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn:hover { background-color: #1e3c72; }
+        .btn-action {
+            padding: 5px 12px;
+            font-size: 12px;
+            background-color: #0284c7;
+        }
+        .btn-action:hover { background-color: #0369a1; }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #1e3c72;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        tr { border-bottom: 1px solid #e2e8f0; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .status-pending { background-color: #fee2e2; color: #ef4444; }
+        .status-done { background-color: #dcfce7; color: #22c55e; }
+    </style>
+</head>
+<body>
+       <div class="container">
+    <h1>Sistema de Gestión - Club de Ciencias</h1>
+    
+    <div style="margin-bottom: 25px; display: flex; gap: 10px;">
+        <a href="/nuevo_prestamo" class="btn">Registrar Nuevo Préstamo</a>
+        <a href="/nuevo_componente" class="btn" style="background-color: #059669;">+ Agregar Componente</a>
+        <a href="/nuevo_equipo" class="btn" style="background-color: #0284c7;">+ Registrar PC/Equipo</a>
+    </div>
+
+    <h2>Computadoras y Equipos Enumerados</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Tipo</th>
+                    <th>Ubicación</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for eq in equipos %}
+                <tr>
+                    <td><strong style="color: #2a5298;">{{ eq.codigo_identificador }}</strong></td>
+                    <td>{{ eq.tipo }}</td>
+                    <td>{{ eq.ubicacion }}</td>
+                    <td>
+                        {% if eq.estado == 'Disponible' %}
+                            <span class="status-badge status-done">Disponible</span>
+                        {% else %}
+                            <span class="status-badge status-pending">En Préstamo</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Inventario de Componentes de Robótica</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Código</th>
+                    <th>Nombre del Componente</th>
+                    <th>Descripción</th>
+                    <th>Stock Actual</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for comp in componentes %}
+                <tr>
+                    <td><strong style="color: #2a5298;">{{ comp.id_componente }}</strong></td>
+                    <td><strong>{{ comp.nombre }}</strong></td>
+                    <td style="color: #64748b;">{{ comp.descripcion }}</td>
+                    <td><strong>{{ comp.stock }}</strong></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <h2>Registro General de Préstamos</h2>
+        <table>
+<thead>
+    <tr>
+        <th>Solicitante (Rol)</th>
+        <th>Componente</th>
+        <th>Fecha Retiro</th>
+        <th>Fecha Límite</th>
+        <th>Estado / Devolución</th>
+    </tr>
+</thead>
+<tbody>
+    {% for pres in prestamos %}
+    <tr>
+        <td>
+            <strong>{{ pres.nombre_solicitante }}</strong> 
+            <small style="color: #64748b;">({{ pres.rol_solicitante }})</small>
+        </td>
+      <td>
+            {% if pres.componente_nom %}
+                <em style="color: #1e3c72;">{{ pres.componente_nom }}</em>
+            {% elif pres.equipo_cod %}
+                <strong style="color: #0284c7;">💻 Equipo {{ pres.equipo_cod }}</strong>
+            {% endif %}
+        </td>
+        <td>{{ pres.fecha_retiro }}</td>
+        <td>{{ pres.fecha_finalizacion }}</td>
+        <td>
+            {% if pres.fecha_devolucion %}
+                <span class="status-badge status-done">Devuelto el {{ pres.fecha_devolucion }}</span>
+            {% else %}
+                <span class="status-badge status-pending">Pendiente</span>
+                <form action="/devolver/{{ pres.id_prestamo }}" method="POST" style="display: inline; margin-left: 10px;">
+                    <button type="submit" class="btn btn-action">Devolver</button>
+                </form>
+            {% endif %}
+        </td>
+    </tr>
+    {% endfor %}
+</tbody>
+        </table>
+    </div>
+</body>
+</html>
