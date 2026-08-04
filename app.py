@@ -80,34 +80,47 @@ def nuevo_componente():
 def nuevo_prestamo():
     conexion = conectar_db()
     cursor = conexion.cursor(dictionary=True)
-
+    
     if request.method == 'POST':
         nombre_solicitante = request.form['nombre_solicitante']
         rol = request.form['rol']
         fecha_ret = request.form['fecha_retiro']
         fecha_fin = request.form['fecha_finalizacion']
-        
-        lista_componentes = request.form.getlist('componentes') 
         id_equipo = request.form.get('id_equipo')
-
-        query_insert_comp = "INSERT INTO prestamos (nombre_solicitante, rol_solicitante, id_componente, fecha_retiro, fecha_finalizacion) VALUES (%s, %s, %s, %s, %s)"
-        query_stock = "UPDATE componentes SET stock = stock - 1 WHERE id_componente = %s"
         
-        for id_comp in lista_componentes:
-            if id_comp:
-                cursor.execute(query_insert_comp, (nombre_solicitante, rol, id_comp, fecha_ret, fecha_fin))
-                cursor.execute(query_stock, (id_comp,))
-
+        query_insert_comp = "INSERT INTO prestamos (nombre_solicitante, rol_solicitante, id_componente, fecha_retiro, fecha_finalizacion) VALUES (%s, %s, %s, %s, %s)"
+        query_stock = "UPDATE componentes SET stock = stock - %s WHERE id_componente = %s"
+        
+        for key, value in request.form.items():
+            if key.startswith('cantidad_'):
+                cantidad = int(value)
+                if cantidad > 0:
+                    id_comp = key.split('_')[1]
+                    
+                    # 1. Consultamos el stock actual real en la base de datos para evitar trampas o errores
+                    cursor.execute("SELECT stock FROM componentes WHERE id_componente = %s", (id_comp,))
+                    comp_db = cursor.fetchone()
+                    
+                    if comp_db and comp_db['stock'] >= cantidad:
+                        # Si hay suficiente stock, registramos y descontamos exactamente esa cantidad
+                        for _ in range(cantidad):
+                            cursor.execute(query_insert_comp, (nombre_solicitante, rol, id_comp, fecha_ret, fecha_fin))
+                        
+                        cursor.execute(query_stock, (cantidad, id_comp))
+                    else:
+                        # Opcional: si no alcanza el stock, podés ignorarlo o frenar la operación
+                        pass
+        
+        # Procesar equipo si fue seleccionado
         if id_equipo:
             query_insert_equipo = "INSERT INTO prestamos (nombre_solicitante, rol_solicitante, id_equipo, fecha_retiro, fecha_finalizacion) VALUES (%s, %s, %s, %s, %s)"
             cursor.execute(query_insert_equipo, (nombre_solicitante, rol, id_equipo, fecha_ret, fecha_fin))
             cursor.execute("UPDATE equipos_unicos SET estado = 'Prestado' WHERE id_equipo = %s", (id_equipo,))
-        
+            
         conexion.commit()
         cursor.close()
         conexion.close()
         return redirect(url_for('index'))
-    
     else:
         cursor.execute("SELECT id_componente, nombre, stock FROM componentes WHERE stock > 0")
         componentes = cursor.fetchall()
