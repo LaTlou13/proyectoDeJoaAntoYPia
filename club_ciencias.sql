@@ -1,3 +1,5 @@
+CREATE DATABASE  IF NOT EXISTS `club_ciencias` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci */ /*!80016 DEFAULT ENCRYPTION='N' */;
+USE `club_ciencias`;
 -- MySQL dump 10.13  Distrib 8.0.45, for Win64 (x86_64)
 --
 -- Host: localhost    Database: club_ciencias
@@ -16,6 +18,22 @@
 /*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
 --
+-- Table structure for table `alumnos`
+--
+
+DROP TABLE IF EXISTS `alumnos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `alumnos` (
+  `dni` int NOT NULL,
+  `nombre` varchar(50) NOT NULL,
+  `apellido` varchar(50) NOT NULL,
+  `curso` varchar(20) NOT NULL,
+  PRIMARY KEY (`dni`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `alumnos`
 --
 
@@ -24,6 +42,22 @@ LOCK TABLES `alumnos` WRITE;
 INSERT INTO `alumnos` VALUES (40123456,'Lucía','Gómez','5to'),(41987654,'Mateo','Rodríguez','6to');
 /*!40000 ALTER TABLE `alumnos` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `componentes`
+--
+
+DROP TABLE IF EXISTS `componentes`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `componentes` (
+  `id_componente` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) NOT NULL,
+  `descripcion` text,
+  `stock` int NOT NULL,
+  PRIMARY KEY (`id_componente`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `componentes`
@@ -36,6 +70,24 @@ INSERT INTO `componentes` VALUES (1,'Microcontrolador ESP32','Placa de desarroll
 UNLOCK TABLES;
 
 --
+-- Table structure for table `equipos_unicos`
+--
+
+DROP TABLE IF EXISTS `equipos_unicos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `equipos_unicos` (
+  `id_equipo` int NOT NULL AUTO_INCREMENT,
+  `codigo_identificador` varchar(20) NOT NULL,
+  `tipo` varchar(50) DEFAULT 'Computadora',
+  `ubicacion` varchar(50) DEFAULT NULL,
+  `estado` varchar(20) DEFAULT 'Disponible',
+  PRIMARY KEY (`id_equipo`),
+  UNIQUE KEY `codigo_identificador` (`codigo_identificador`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
 -- Dumping data for table `equipos_unicos`
 --
 
@@ -44,6 +96,30 @@ LOCK TABLES `equipos_unicos` WRITE;
 INSERT INTO `equipos_unicos` VALUES (1,'PX-14','Nootebook negrita','Lab Informática (PX)','Disponible');
 /*!40000 ALTER TABLE `equipos_unicos` ENABLE KEYS */;
 UNLOCK TABLES;
+
+--
+-- Table structure for table `prestamos`
+--
+
+DROP TABLE IF EXISTS `prestamos`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `prestamos` (
+  `id_prestamo` int NOT NULL AUTO_INCREMENT,
+  `nombre_solicitante` varchar(100) NOT NULL,
+  `rol_solicitante` varchar(50) NOT NULL,
+  `id_componente` int DEFAULT NULL,
+  `id_equipo` int DEFAULT NULL,
+  `fecha_retiro` date NOT NULL,
+  `fecha_finalizacion` date NOT NULL,
+  `fecha_devolucion` date DEFAULT NULL,
+  PRIMARY KEY (`id_prestamo`),
+  KEY `id_componente` (`id_componente`),
+  KEY `id_equipo` (`id_equipo`),
+  CONSTRAINT `prestamos_ibfk_1` FOREIGN KEY (`id_componente`) REFERENCES `componentes` (`id_componente`),
+  CONSTRAINT `prestamos_ibfk_2` FOREIGN KEY (`id_equipo`) REFERENCES `equipos_unicos` (`id_equipo`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `prestamos`
@@ -64,4 +140,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-07 12:48:03
+-- Dump completed on 2026-08-07 13:33:34

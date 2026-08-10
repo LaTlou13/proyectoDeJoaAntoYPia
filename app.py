@@ -1,8 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, flash
 import mysql.connector
 from datetime import date
 
 app = Flask(__name__)
+app.secret_key = "clave_secreta_para_sesion"  # Requerido si usas flash messages
+
+# Contraseña única para autorizar la eliminación de elementos
+CLAVE_ELIMINACION = "12345"
 
 def conectar_db():
     return mysql.connector.connect(
@@ -25,7 +29,8 @@ def index():
     
     consulta_prestamos = """
         SELECT p.id_prestamo, p.nombre_solicitante, p.rol_solicitante, 
-               c.nombre AS componente_nom, e.codigo_identificador AS equipo_cod,
+               c.nombre AS componente_nom, c.numero_serie AS comp_sn,
+               e.codigo_identificador AS equipo_cod, e.numero_serie AS equipo_sn,
                p.fecha_retiro, p.fecha_finalizacion, p.fecha_devolucion
         FROM prestamos p
         LEFT JOIN componentes c ON p.id_componente = c.id_componente
@@ -43,13 +48,14 @@ def index():
 def nuevo_equipo():
     if request.method == 'POST':
         codigo = request.form['codigo']
+        numero_serie = request.form.get('numero_serie') or None
         tipo = request.form['tipo']
         ubicacion = request.form['ubicacion']
         
         conexion = conectar_db()
         cursor = conexion.cursor()
-        query = "INSERT INTO equipos_unicos (codigo_identificador, tipo, ubicacion) VALUES (%s, %s, %s)"
-        cursor.execute(query, (codigo, tipo, ubicacion))
+        query = "INSERT INTO equipos_unicos (codigo_identificador, numero_serie, tipo, ubicacion) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (codigo, numero_serie, tipo, ubicacion))
         conexion.commit()
         cursor.close()
         conexion.close()
@@ -61,13 +67,14 @@ def nuevo_equipo():
 def nuevo_componente():
     if request.method == 'POST':
         nombre = request.form['nombre']
+        numero_serie = request.form.get('numero_serie') or None
         descripcion = request.form['descripcion']
         stock = request.form['stock']
         
         conexion = conectar_db()
         cursor = conexion.cursor()
-        query = "INSERT INTO componentes (nombre, descripcion, stock) VALUES (%s, %s, %s)"
-        cursor.execute(query, (nombre, descripcion, stock))
+        query = "INSERT INTO componentes (nombre, numero_serie, descripcion, stock) VALUES (%s, %s, %s, %s)"
+        cursor.execute(query, (nombre, numero_serie, descripcion, stock))
         conexion.commit()
         cursor.close()
         conexion.close()
@@ -75,6 +82,29 @@ def nuevo_componente():
     
     return render_template('nuevo_componente.html')
 
+@app.route('/eliminar_componente/<int:id_componente>', methods=['POST'])
+def eliminar_componente(id_componente):
+    password_ingresada = request.form.get('password')
+    if password_ingresada == CLAVE_ELIMINACION:
+        conexion = conectar_db()
+        cursor = conexion.cursor()
+        cursor.execute("DELETE FROM componentes WHERE id_componente = %s", (id_componente,))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+    return redirect(url_for('index'))
+
+@app.route('/eliminar_equipo/<int:id_equipo>', methods=['POST'])
+def eliminar_equipo(id_equipo):
+    password_ingresada = request.form.get('password')
+    if password_ingresada == CLAVE_ELIMINACION:
+        conexion = conectar_db()
+        cursor = conexion.cursor()
+        cursor.execute("DELETE FROM equipos_unicos WHERE id_equipo = %s", (id_equipo,))
+        conexion.commit()
+        cursor.close()
+        conexion.close()
+    return redirect(url_for('index'))
 
 @app.route('/nuevo_prestamo', methods=['GET', 'POST'])
 def nuevo_prestamo():
@@ -97,21 +127,14 @@ def nuevo_prestamo():
                 if cantidad > 0:
                     id_comp = key.split('_')[1]
                     
-                    # 1. Consultamos el stock actual real en la base de datos para evitar trampas o errores
                     cursor.execute("SELECT stock FROM componentes WHERE id_componente = %s", (id_comp,))
                     comp_db = cursor.fetchone()
                     
                     if comp_db and comp_db['stock'] >= cantidad:
-                        # Si hay suficiente stock, registramos y descontamos exactamente esa cantidad
                         for _ in range(cantidad):
                             cursor.execute(query_insert_comp, (nombre_solicitante, rol, id_comp, fecha_ret, fecha_fin))
-                        
                         cursor.execute(query_stock, (cantidad, id_comp))
-                    else:
-                        # Opcional: si no alcanza el stock, podés ignorarlo o frenar la operación
-                        pass
         
-        # Procesar equipo si fue seleccionado
         if id_equipo:
             query_insert_equipo = "INSERT INTO prestamos (nombre_solicitante, rol_solicitante, id_equipo, fecha_retiro, fecha_finalizacion) VALUES (%s, %s, %s, %s, %s)"
             cursor.execute(query_insert_equipo, (nombre_solicitante, rol, id_equipo, fecha_ret, fecha_fin))
@@ -122,16 +145,15 @@ def nuevo_prestamo():
         conexion.close()
         return redirect(url_for('index'))
     else:
-        cursor.execute("SELECT id_componente, nombre, stock FROM componentes WHERE stock > 0")
+        cursor.execute("SELECT id_componente, nombre, numero_serie, stock FROM componentes WHERE stock > 0")
         componentes = cursor.fetchall()
         
-        cursor.execute("SELECT id_equipo, codigo_identificador, ubicacion FROM equipos_unicos WHERE estado = 'Disponible'")
+        cursor.execute("SELECT id_equipo, codigo_identificador, numero_serie, ubicacion FROM equipos_unicos WHERE estado = 'Disponible'")
         equipos = cursor.fetchall()
         
         cursor.close()
         conexion.close()
         return render_template('nuevo_prestamo.html', componentes=componentes, equipos=equipos)
-
 
 @app.route('/devolver/<int:id_prestamo>', methods=['POST'])
 def devolver(id_prestamo):

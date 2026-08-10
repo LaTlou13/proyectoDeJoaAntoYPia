@@ -13,6 +13,7 @@
             background-color: #fff; font-size: 15px; color: #333; box-sizing: border-box; font-family: inherit;
         }
         input:focus, select:focus { outline: none; border-color: #ff8da1; box-shadow: 0 0 0 3px rgba(253, 148, 165, 0.377); }
+        .hint { font-size: 12px; color: #64748b; margin-top: 4px; display: block; }
         .form-actions { margin-top: 30px; }
         .btn { display: inline-block; background-color: #ff8da1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; border: none; cursor: pointer; }
         .btn:hover { background-color: #ff7978; }
@@ -27,6 +28,10 @@
         <form action="/nuevo_equipo" method="POST">
             <label for="codigo">Código Identificador (Etiqueta de la PC):</label>
             <input type="text" name="codigo" id="codigo" placeholder="Ej: PX-01 o AX-05" required>
+
+            <label for="numero_serie">Número de Serie (Opcional):</label>
+            <input type="text" name="numero_serie" id="numero_serie" placeholder="Ej: S/N ABC123XYZ">
+            <span class="hint">Si el equipo no posee número de serie, dejalo en blanco.</span>
 
             <label for="tipo">Tipo de Equipo:</label>
             <input type="text" name="tipo" id="tipo" placeholder="Ej: Notebook Lenovo, Desktop Exo, etc." required>

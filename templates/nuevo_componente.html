@@ -13,6 +13,7 @@
             background-color: #fff; font-size: 15px; color: #333; box-sizing: border-box; font-family: inherit;
         }
         input:focus, textarea:focus { outline: none; border-color: #ff8da1; box-shadow: 0 0 0 3px rgba(253, 148, 165, 0.377); }
+        .hint { font-size: 12px; color: #64748b; margin-top: 4px; display: block; }
         .form-actions { margin-top: 30px; }
         .btn { display: inline-block; background-color: #ff8da1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; border: none; cursor: pointer; }
         .btn:hover { background-color: #ff7987; }
@@ -27,6 +28,10 @@
         <form action="/nuevo_componente" method="POST">
             <label for="nombre">Nombre del Componente / Kit:</label>
             <input type="text" name="nombre" id="nombre" placeholder="Ej: Kit Impresora 3D Ender" required>
+
+            <label for="numero_serie">Número de Serie (Opcional):</label>
+            <input type="text" name="numero_serie" id="numero_serie" placeholder="Ej: SN-9876543210">
+            <span class="hint">Si no tiene número de serie, podés dejar este campo en blanco.</span>
 
             <label for="descripcion">Descripción:</label>
             <textarea name="descripcion" id="descripcion" rows="3" placeholder="Ej: Incluye extrusor de repuesto, herramientas y filamento PLA"></textarea>
