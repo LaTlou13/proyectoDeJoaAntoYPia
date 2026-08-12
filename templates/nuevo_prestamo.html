@@ -3,24 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Nuevo Préstamo</title>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f9; color: #ff7987; margin: 0; padding: 30px; }
-        .container { max-width: 600px; margin: 40px auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); }
-        h1 { color: #ff7987; border-bottom: 3px solid #ff7987; padding-bottom: 10px; margin-top: 0; font-size: 24px; }
-        label { display: block; margin-top: 20px; margin-bottom: 8px; font-weight: bold; color: #ff7987; }
-        select, input[type="text"], input[type="date"] {
-            width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 6px;
-            background-color: #fff; font-size: 15px; color: #333; box-sizing: border-box;
-        }
-        select[multiple] { height: 140px; padding: 5px; }
-        select:focus, input:focus { outline: none; border-color: #2a5298; box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.15); }
-        .hint { font-size: 12px; color: #64748b; margin-top: 4px; display: block; }
-        .form-actions { margin-top: 30px; }
-        .btn { display: inline-block; background-color: #ff8da1; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 15px; border: none; cursor: pointer; }
-        .btn:hover { background-color: #ff7987; }
-        .btn-link { display: inline-block; margin-left: 15px; color: #64748b; text-decoration: none; font-size: 15px; }
-        .btn-link:hover { text-decoration: underline; color: #334155; }
-    </style>
+     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="container">
@@ -36,21 +19,22 @@
                 <option value="Profesor/a">Profesor/a</option>
             </select>
 
-          <label>Componentes a Retirar (Opcional):</label>
-<div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 15px; max-height: 200px; overflow-y: auto; background: #fff;">
-    {% for comp in componentes %}
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #f1f5f9; padding-bottom: 8px;">
-            <div>
-                <strong>{{ comp.nombre }}</strong>
-                <span class="hint" style="margin: 0;">Stock disponible: {{ comp.stock }}</span>
+            <label>Componentes a Retirar (Opcional):</label>
+            <div class="components-list">
+                {% for comp in componentes %}
+                    <div class="component-item">
+                        <div class="component-info">
+                            <strong>{{ comp.nombre }}</strong>
+                            <span class="hint hint-inline">Stock disponible: {{ comp.stock }}</span>
+                        </div>
+                        <div class="component-input">
+                            <input type="number" name="cantidad_{{ comp.id_componente }}" min="0" max="{{ comp.stock }}" value="0" class="input-quantity">
+                        </div>
+                    </div>
+                {% endfor %}
             </div>
-            <div>
-                <input type="number" name="cantidad_{{ comp.id_componente }}" min="0" max="{{ comp.stock }}" value="0" style="width: 70px; padding: 5px; text-align: center;">
-            </div>
-        </div>
-    {% endfor %}
-</div>
-<span class="hint">💡 Indicá la cantidad que querés llevar de cada componente.</span>
+            <span class="hint">💡 Indicá la cantidad que querés llevar de cada componente.</span>
+
             <label for="id_equipo">Computadora / Equipo Específico (Opcional):</label>
             <select name="id_equipo" id="id_equipo">
                 <option value="">-- Ninguna --</option>
@@ -73,4 +57,3 @@
     </div>
 </body>
 </html>
-
