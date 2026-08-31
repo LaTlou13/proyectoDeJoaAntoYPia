@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuevo Componente</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
@@ -9,9 +10,19 @@
     <div class="container">
         <h1>Registrar Nuevo Componente</h1>
         
-        <form action="/nuevo_componente" method="POST">
+        <form action="{{ url_for('nuevo_componente') }}" method="POST">
             <label for="nombre">Nombre del Componente / Kit:</label>
             <input type="text" name="nombre" id="nombre" placeholder="Ej: Kit Impresora 3D Ender" required>
+
+            <label for="tipo">Tipo / Categoría:</label>
+            <select name="tipo" id="tipo" required>
+                <option value="" disabled selected>Seleccione un tipo...</option>
+                <option value="Herramienta">Herramienta</option>
+                <option value="Sensor">Sensor</option>
+                <option value="Insumo">Insumo</option>
+                <option value="Electrónica">Electrónica</option>
+                <option value="Otro">Otro</option>
+            </select>
 
             <label for="numero_serie">Número de Serie (Opcional):</label>
             <input type="text" name="numero_serie" id="numero_serie" placeholder="Ej: SN-9876543210">
@@ -25,7 +36,7 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn">Guardar Componente</button>
-                <a href="/" class="btn-link">Cancelar</a>
+                <a href="{{ url_for('index') }}" class="btn-link">Cancelar</a>
             </div>
         </form>
     </div>

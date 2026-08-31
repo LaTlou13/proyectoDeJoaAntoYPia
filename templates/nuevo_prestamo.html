@@ -2,44 +2,59 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuevo Préstamo</title>
-     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Registrar Préstamo</h1>
         
-        <form action="/nuevo_prestamo" method="POST">
+        <form action="{{ url_for('nuevo_prestamo') }}" method="POST">
             <label for="nombre_solicitante">Nombre y Apellido:</label>
             <input type="text" name="nombre_solicitante" id="nombre_solicitante" placeholder="Ej: Juanita del Valle" required>
 
             <label for="rol">Rol / Ocupación:</label>
-            <select name="rol" id="rol" required>
-                <option value="Alumno/a">Alumno/a</option>
-                <option value="Profesor/a">Profesor/a</option>
+            <select name="rol_solicitante" id="rol_solicitante">
+              <option value="Estudiante">Estudiante</option>
+              <option value="Docente">Docente</option>
             </select>
 
-            <label>Componentes a Retirar (Opcional):</label>
+            <!-- BUSCADOR DE COMPONENTES -->
+            <label for="buscar-comp-prestamo">Componentes a Retirar (Opcional):</label>
+            <div class="search-container" style="margin-bottom: 8px;">
+                <input type="text" id="buscar-comp-prestamo" placeholder="Filtrar componentes por nombre..." class="input-search">
+            </div>
+
             <div class="components-list">
-                {% for comp in componentes %}
-                    <div class="component-item">
-                        <div class="component-info">
-                            <strong>{{ comp.nombre }}</strong>
-                            <span class="hint hint-inline">Stock disponible: {{ comp.stock }}</span>
+                {% if componentes %}
+                    {% for comp in componentes %}
+                        <div class="component-item">
+                            <div class="component-info">
+                                <strong>{{ comp.nombre }}</strong>
+                                <span class="hint hint-inline">Stock disponible: {{ comp.stock }}</span>
+                            </div>
+                            <div class="component-input">
+                                <input type="number" name="cantidad_{{ comp.id_componente }}" min="0" max="{{ comp.stock }}" value="0" class="input-quantity">
+                            </div>
                         </div>
-                        <div class="component-input">
-                            <input type="number" name="cantidad_{{ comp.id_componente }}" min="0" max="{{ comp.stock }}" value="0" class="input-quantity">
-                        </div>
-                    </div>
-                {% endfor %}
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No hay componentes en stock disponibles para prestar.</p>
+                {% endif %}
             </div>
             <span class="hint">💡 Indicá la cantidad que querés llevar de cada componente.</span>
 
-            <label for="id_equipo">Computadora / Equipo Específico (Opcional):</label>
+            <!-- BUSCADOR DE EQUIPOS -->
+            <label for="buscar-equipo-prestamo">Computadora / Equipo Específico (Opcional):</label>
+            <div class="search-container" style="margin-bottom: 8px;">
+                <input type="text" id="buscar-equipo-prestamo" placeholder="🔍 Buscar equipo por código o ubicación..." class="input-search">
+            </div>
+
             <select name="id_equipo" id="id_equipo">
                 <option value="">-- Ninguna --</option>
                 {% for eq in equipos %}
-                    <option value="{{ eq.id_equipo }}">{{ eq.codigo_identificador }} ({{ eq.ubicacion }})</option>
+                    <option value="{{ eq.id_equipo_unico }}">{{ eq.codigo_identificador }} ({{ eq.ubicacion if eq.ubicacion else 'Sin Ubicación' }})</option>
                 {% endfor %}
             </select>
 
@@ -51,9 +66,10 @@
 
             <div class="form-actions">
                 <button type="submit" class="btn">Guardar Préstamo</button>
-                <a href="/" class="btn-link">Cancelar</a>
+                <a href="{{ url_for('index') }}" class="btn-link">Cancelar</a>
             </div>
         </form>
     </div>
 </body>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </html>

@@ -2,153 +2,226 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Club de Ciencias</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Inventario y Préstamos</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <div class="container">
-        <h1>Sistema de Gestión</h1>
-        
+        <h1>Gestión de Inventario y Préstamos</h1>
+
         <div class="header-actions">
-            <a href="/nuevo_prestamo" class="btn">Registrar Nuevo Préstamo</a>
-            <a href="/nuevo_componente" class="btn">Agregar Componente</a>
-            <a href="/nuevo_equipo" class="btn">Registrar PC/Equipo</a>
+            <a href="{{ url_for('nuevo_prestamo') }}" class="btn">Registrar Nuevo Préstamo</a>
+            <a href="{{ url_for('nuevo_equipo') }}" class="btn">Registrar Equipo</a>
+            <a href="{{ url_for('nuevo_componente') }}" class="btn">Registrar Componente</a>
         </div>
 
-        <h2>Computadoras y Equipos Enumerados</h2>
-        <table>
+        <!-- TABLA DE PRÉSTAMOS -->
+        <h2>Historial de Préstamos</h2>
+        
+        <div class="search-container">
+            <input type="text" id="buscarPrestamo" class="input-search" placeholder="Buscar por solicitante o ítem..." aria-label="Buscar préstamos">
+        </div>
+
+        <table id="tablaPrestamos">
+            <thead>
+                <tr>
+                    <th>Solicitante</th>
+                    <th>Rol</th>
+                    <th>Ítems Prestados</th>
+                    <th>Fecha Retiro</th>
+                    <th>Fecha Límite</th>
+                    <th style="text-align: right;">Estado / Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in prestamos %}
+                <tr data-estado="{{ 'devuelto' if p.fecha_devolucion else 'pendiente' }}">
+                    <td><strong>{{ p.nombre_solicitante }}</strong></td>
+                    <td>{{ p.rol_solicitante }}</td>
+                    <td><span class="text-highlight">{{ p.items_prestados }}</span></td>
+                    <td>{{ p.fecha_retiro }}</td>
+                    <td>{{ p.fecha_finalizacion }}</td>
+                    <td style="text-align: right;">
+                        {% if p.fecha_devolucion %}
+                            <span class="status-badge status-done">Devuelto ({{ p.fecha_devolucion }})</span>
+                        {% else %}
+                            <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                                <span class="status-badge status-pending">Pendiente</span>
+                                <form action="{{ url_for('devolver', id_prestamo=p.id_prestamo) }}" method="POST" class="inline-form action-form" onsubmit="return pedirClave(event, this)">
+                                    <input type="hidden" name="clave" value="">
+                                    <button type="submit" class="btn-action">Devolver</button>
+                                </form>
+                            </div>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-muted">No hay registros de préstamos.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- TABLA DE EQUIPOS -->
+        <h2>Equipos</h2>
+        
+        <div class="search-container">
+            <input type="text" id="buscarEquipo" class="input-search" placeholder="Buscar por código, serie o tipo..." aria-label="Buscar equipos">
+        </div>
+
+        <table id="tablaEquipos">
             <thead>
                 <tr>
                     <th>Código</th>
-                    <th>N° de Serie (S/N)</th>
+                    <th>Nº Serie</th>
                     <th>Tipo</th>
                     <th>Ubicación</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
+                    <th style="text-align: right;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for eq in equipos %}
                 <tr>
-                    <td><strong class="text-highlight">{{ eq.codigo_identificador }}</strong></td>
-                    <td>
-                        {% if eq.numero_serie %}
-                            <span class="sn-tag">{{ eq.numero_serie }}</span>
-                        {% else %}
-                            <small class="text-muted">s/n</small>
-                        {% endif %}
-                    </td>
+                    <td><strong>{{ eq.codigo_identificador }}</strong></td>
+                    <td><span class="sn-tag">{{ eq.numero_serie or 'N/A' }}</span></td>
                     <td>{{ eq.tipo }}</td>
-                    <td>{{ eq.ubicacion }}</td>
-                    <td>
-                        {% if eq.estado == 'Disponible' %}
-                            <span class="status-badge status-done">Disponible</span>
-                        {% else %}
-                            <span class="status-badge status-pending">En Préstamo</span>
-                        {% endif %}
+                    <td>{{ eq.ubicacion or 'Sin Ubicación' }}</td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                            <button type="button" 
+                                    class="btn-action" 
+                                    onclick="mostrarQREquipo(this)"
+                                    data-codigo="{{ eq.codigo_identificador }}"
+                                    data-sn="{{ eq.numero_serie or 'N/A' }}"
+                                    data-tipo="{{ eq.tipo }}"
+                                    data-ubicacion="{{ eq.ubicacion or 'Sin Ubicación' }}">
+                                QR
+                            </button>
+
+                            <button type="button" 
+                                    class="btn-action" 
+                                    onclick="editarEquipo(this)"
+                                    data-id="{{ eq.id_equipo }}"
+                                    data-codigo="{{ eq.codigo_identificador }}"
+                                    data-sn="{{ eq.numero_serie or '' }}"
+                                    data-tipo="{{ eq.tipo }}"
+                                    data-ubicacion="{{ eq.ubicacion or '' }}">
+                                Editar
+                            </button>
+
+                            <form action="{{ url_for('eliminar_equipo', id_equipo=eq.id_equipo) }}" method="POST" class="inline-form action-form" onsubmit="return pedirClave(event, this)">
+                                <input type="hidden" name="clave" value="">
+                                <button type="submit" class="btn-delete">Eliminar</button>
+                            </form>
+                        </div>
                     </td>
-                    <td>
-                        <form id="form-del-eq-{{ eq.id_equipo }}" action="/eliminar_equipo/{{ eq.id_equipo }}" method="POST" class="inline-form">
-                            <input type="hidden" name="password" id="pass-eq-{{ eq.id_equipo }}">
-                            <button type="button" class="btn-delete" onclick="eliminarConClave('form-del-eq-{{ eq.id_equipo }}', 'pass-eq-{{ eq.id_equipo }}')">Eliminar</button>
-                        </form>
-                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="text-muted">No hay equipos registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
 
-        <h2>Inventario de Componentes de Robótica</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Código</th>
-                    <th>Nombre del Componente</th>
-                    <th>N° de Serie (S/N)</th>
-                    <th>Descripción</th>
-                    <th>Stock Actual</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for comp in componentes %}
-                <tr>
-                    <td><strong>{{ comp.id_componente }}</strong></td>
-                    <td><strong>{{ comp.nombre }}</strong></td>
-                    <td>
-                        {% if comp.numero_serie %}
-                            <span class="sn-tag">{{ comp.numero_serie }}</span>
-                        {% else %}
-                            <small class="text-muted">s/n</small>
-                        {% endif %}
-                    </td>
-                    <td class="text-primary">{{ comp.descripcion }}</td>
-                    <td><strong>{{ comp.stock }}</strong></td>
-                    <td>
-                        <form id="form-del-comp-{{ comp.id_componente }}" action="/eliminar_componente/{{ comp.id_componente }}" method="POST" class="inline-form">
-                            <input type="hidden" name="password" id="pass-comp-{{ comp.id_componente }}">
-                            <button type="button" class="btn-delete" onclick="eliminarConClave('form-del-comp-{{ comp.id_componente }}', 'pass-comp-{{ comp.id_componente }}')">Eliminar</button>
-                        </form>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        <div class="filter-container">
-            <h2 class="title-no-margin">Registro General de Préstamos</h2>
-            <div class="filter-buttons">
-                <button onclick="filtrarPrestamos('todos', this)" class="btn-filter active">Todos</button>
-                <button onclick="filtrarPrestamos('pendientes', this)" class="btn-filter">Pendientes</button>
-                <button onclick="filtrarPrestamos('devueltos', this)" class="btn-filter">Devueltos</button>
-            </div>
+        <!-- TABLA DE COMPONENTES / INSUMOS -->
+        <h2>Componentes y Kits</h2>
+        
+        <div class="search-container">
+            <input type="text" id="buscarComponente" class="input-search" placeholder="Buscar por nombre, tipo o Nº serie..." aria-label="Buscar componentes">
         </div>
 
-        <table id="tabla-prestamos">
+        <table id="tablaComponentes">
             <thead>
                 <tr>
-                    <th>Solicitante (Rol)</th>
-                    <th>Componente / Equipo</th>
-                    <th>Fecha Retiro</th>
-                    <th>Fecha Límite</th>
-                    <th>Estado / Devolución</th>
+                    <th>Nombre</th>
+                    <th>Tipo</th>
+                    <th>Nº Serie</th>
+                    <th>Descripción</th>
+                    <th>Stock</th>
+                    <th style="text-align: right;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for pres in prestamos %}
-                <tr data-estado="{{ 'devuelto' if pres.fecha_devolucion else 'pendiente' }}">
-                    <td>
-                        <strong>{{ pres.nombre_solicitante }}</strong> 
-                        <small class="text-primary">({{ pres.rol_solicitante }})</small>
-                    </td>
-                    <td>
-                        {% if pres.componente_nom %}
-                            <em class="text-highlight">{{ pres.componente_nom }}</em>
-                            {% if pres.comp_sn %}<small class="sn-tag">SN: {{ pres.comp_sn }}</small>{% endif %}
-                        {% elif pres.equipo_cod %}
-                            <strong class="text-primary">Equipo {{ pres.equipo_cod }}</strong>
-                            {% if pres.equipo_sn %}<small class="sn-tag">SN: {{ pres.equipo_sn }}</small>{% endif %}
-                        {% endif %}
-                    </td>
-                    <td>{{ pres.fecha_retiro }}</td>
-                    <td>{{ pres.fecha_finalizacion }}</td>
-                    <td>
-                        {% if pres.fecha_devolucion %}
-                            <span class="status-badge status-done">Devuelto el {{ pres.fecha_devolucion }}</span>
-                        {% else %}
-                            <span class="status-badge status-pending">Pendiente</span>
-                            <form action="/devolver/{{ pres.id_prestamo }}" method="POST" class="inline-form action-form">
-                                <button type="submit" class="btn btn-action">Devolver</button>
+                {% for c in componentes %}
+                <tr>
+                    <td><strong>{{ c.nombre }}</strong></td>
+                    <td>{{ c.tipo or '-' }}</td>
+                    <td><span class="sn-tag">{{ c.numero_serie or 'N/A' }}</span></td>
+                    <td><small>{{ c.descripcion or 'Sin descripción' }}</small></td>
+                    <td><strong>{{ c.stock }}</strong></td>
+                    <td style="text-align: right;">
+                        <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                            <button type="button" 
+                                    class="btn-action" 
+                                    onclick="mostrarQRComponente(this)"
+                                    data-nombre="{{ c.nombre }}"
+                                    data-tipo="{{ c.tipo or 'N/A' }}"
+                                    data-sn="{{ c.numero_serie or 'N/A' }}"
+                                    data-descripcion="{{ c.descripcion or 'Sin descripción' }}"
+                                    data-stock="{{ c.stock }}">
+                                QR
+                            </button>
+
+                            <button type="button" 
+                                    class="btn-action" 
+                                    onclick="editarComponente(this)"
+                                    data-id="{{ c.id_componente }}"
+                                    data-nombre="{{ c.nombre }}"
+                                    data-tipo="{{ c.tipo or '' }}"
+                                    data-sn="{{ c.numero_serie or '' }}"
+                                    data-descripcion="{{ c.descripcion or '' }}"
+                                    data-stock="{{ c.stock }}">
+                                Editar
+                            </button>
+
+                            <form action="{{ url_for('eliminar_componente', id_componente=c.id_componente) }}" method="POST" class="inline-form action-form" onsubmit="return pedirClave(event, this)">
+                                <input type="hidden" name="clave" value="">
+                                <button type="submit" class="btn-delete">Eliminar</button>
                             </form>
-                        {% endif %}
+                        </div>
                     </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" class="text-muted">No hay componentes registrados.</td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
-
     </div>
 
-    <script src="main.js"></script>
+    <!-- Formulario Oculto para Editar Componente -->
+    <form id="form-editar-componente" action="" method="POST" style="display: none;">
+        <input type="hidden" name="nombre" id="edit-comp-nombre">
+        <input type="hidden" name="tipo" id="edit-comp-tipo">
+        <input type="hidden" name="numero_serie" id="edit-comp-sn">
+        <input type="hidden" name="descripcion" id="edit-comp-desc">
+        <input type="hidden" name="stock" id="edit-comp-stock">
+        <input type="hidden" name="clave" id="edit-comp-pass">
+    </form>
+
+    <!-- Formulario Oculto para Editar Equipo -->
+    <form id="form-editar-equipo" action="" method="POST" style="display: none;">
+        <input type="hidden" name="codigo" id="edit-eq-codigo">
+        <input type="hidden" name="numero_serie" id="edit-eq-sn">
+        <input type="hidden" name="tipo" id="edit-eq-tipo">
+        <input type="hidden" name="ubicacion" id="edit-eq-ubicacion">
+        <input type="hidden" name="clave" id="edit-eq-pass">
+    </form>
+
+    <!-- MODAL DE QR NATIVO -->
+    <dialog id="modal-qr" class="modal-dialog">
+        <div class="modal-content">
+            <h3 id="qr-titulo">Código QR</h3>
+            <img id="img-qr" src="" alt="Código QR">
+            <br>
+            <button type="button" class="btn" onclick="cerrarQR()">Cerrar</button>
+        </div>
+    </dialog>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
 </body>
 </html>

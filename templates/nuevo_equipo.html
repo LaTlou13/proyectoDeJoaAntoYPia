@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Nuevo Equipo</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
@@ -9,7 +10,7 @@
     <div class="container">
         <h1>Registrar Nueva PC / Equipo</h1>
         
-        <form action="/nuevo_equipo" method="POST">
+        <form action="{{ url_for('nuevo_equipo') }}" method="POST">
             <label for="codigo">Código Identificador (Etiqueta de la PC):</label>
             <input type="text" name="codigo" id="codigo" placeholder="Ej: PX-01 o AX-05" required>
 
@@ -27,9 +28,16 @@
                 <option value="Arriba">Arriba</option>
             </select>
 
-            <div class="form-actions">
+            <label for="estado">Estado del Equipo:</label>
+            <select name="estado" id="estado">
+                <option value="Disponible">Disponible</option>
+                <option value="En Reparación">En Reparación</option>
+                <option value="Dado de Baja">Dado de Baja</option>
+            </select>
+            
+            <div class="form-actions" style="margin-top: 20px;">
                 <button type="submit" class="btn">Guardar Equipo</button>
-                <a href="/" class="btn-link">Cancelar</a>
+                <a href="{{ url_for('index') }}" class="btn-link">Cancelar</a>
             </div>
         </form>
     </div>

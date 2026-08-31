@@ -282,3 +282,23 @@ tr:nth-child(even) {
 .text-highlight { color: #ff8da1; }
 .text-primary   { color: #ff7987; }
 .text-muted     { color: #a0aec0; }
+
+.search-container {
+    margin-bottom: 12px;
+}
+
+.input-search {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 14px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.input-search:focus {
+    outline: none;
+    border-color: #ff8da1;
+    box-shadow: 0 0 0 3px rgba(253, 148, 165, 0.25);
+}
