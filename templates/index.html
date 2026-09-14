@@ -126,73 +126,71 @@
             </tbody>
         </table>
 
-        <!-- TABLA DE COMPONENTES / INSUMOS -->
-        <h2>Componentes y Kits</h2>
-        
-        <div class="search-container">
-            <input type="text" id="buscarComponente" class="input-search" placeholder="Buscar por nombre, tipo o Nº serie..." aria-label="Buscar componentes">
-        </div>
+       <!-- TABLA DE COMPONENTES / INSUMOS -->
+<h2>Componentes y Kits</h2>
 
-        <table id="tablaComponentes">
-            <thead>
-                <tr>
-                    <th>Nombre</th>
-                    <th>Tipo</th>
-                    <th>Nº Serie</th>
-                    <th>Descripción</th>
-                    <th>Stock</th>
-                    <th style="text-align: right;">Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for c in componentes %}
-                <tr>
-                    <td><strong>{{ c.nombre }}</strong></td>
-                    <td>{{ c.tipo or '-' }}</td>
-                    <td><span class="sn-tag">{{ c.numero_serie or 'N/A' }}</span></td>
-                    <td><small>{{ c.descripcion or 'Sin descripción' }}</small></td>
-                    <td><strong>{{ c.stock }}</strong></td>
-                    <td style="text-align: right;">
-                        <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
-                            <button type="button" 
-                                    class="btn-action" 
-                                    onclick="mostrarQRComponente(this)"
-                                    data-nombre="{{ c.nombre }}"
-                                    data-tipo="{{ c.tipo or 'N/A' }}"
-                                    data-sn="{{ c.numero_serie or 'N/A' }}"
-                                    data-descripcion="{{ c.descripcion or 'Sin descripción' }}"
-                                    data-stock="{{ c.stock }}">
-                                QR
-                            </button>
+<div class="search-container">
+    <input type="text" id="buscarComponente" class="input-search" placeholder="Buscar por nombre, tipo o Nº serie..." aria-label="Buscar componentes">
+</div>
 
-                            <button type="button" 
-                                    class="btn-action" 
-                                    onclick="editarComponente(this)"
-                                    data-id="{{ c.id_componente }}"
-                                    data-nombre="{{ c.nombre }}"
-                                    data-tipo="{{ c.tipo or '' }}"
-                                    data-sn="{{ c.numero_serie or '' }}"
-                                    data-descripcion="{{ c.descripcion or '' }}"
-                                    data-stock="{{ c.stock }}">
-                                Editar
-                            </button>
+<table id="tablaComponentes">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Tipo</th>
+            <th>Nº Serie</th>
+            <th>Descripción</th>
+            <th>Stock</th>
+            <th style="text-align: right;">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for c in componentes %}
+        <tr>
+            <td><strong>{{ c.nombre }}</strong></td>
+            <td>{{ c.tipo or '-' }}</td>
+            <td><span class="sn-tag">{{ c.numero_serie or 'N/A' }}</span></td>
+            <td><small>{{ c.descripcion or 'Sin descripción' }}</small></td>
+            <td><strong>{{ c.stock }}</strong></td>
+            <td style="text-align: right;">
+                <div style="display: flex; gap: 6px; justify-content: flex-end; align-items: center;">
+                    <button type="button" 
+                            class="btn-action" 
+                            onclick="mostrarQRComponente(this)"
+                            data-nombre="{{ c.nombre }}"
+                            data-tipo="{{ c.tipo or 'N/A' }}"
+                            data-sn="{{ c.numero_serie or 'N/A' }}"
+                            data-descripcion="{{ c.descripcion or 'Sin descripción' }}"
+                            data-stock="{{ c.stock }}">
+                        QR
+                    </button>
 
-                            <form action="{{ url_for('eliminar_componente', id_componente=c.id_componente) }}" method="POST" class="inline-form action-form" onsubmit="return pedirClave(event, this)">
-                                <input type="hidden" name="clave" value="">
-                                <button type="submit" class="btn-delete">Eliminar</button>
-                            </form>
-                        </div>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="6" class="text-muted">No hay componentes registrados.</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+                    <button type="button" 
+                            class="btn-action" 
+                            onclick="editarComponente(this)"
+                            data-id="{{ c.id_componente }}"
+                            data-nombre="{{ c.nombre }}"
+                            data-tipo="{{ c.tipo or '' }}"
+                            data-sn="{{ c.numero_serie or '' }}"
+                            data-descripcion="{{ c.descripcion or '' }}"
+                            data-stock="{{ c.stock }}">
+                        Editar
+                    </button>
 
+                    <form action="{{ url_for('eliminar_componente', id_componente=c.id_componente) }}" method="POST" class="inline-form action-form" onsubmit="return pedirClave(event, this)">
+                        <input type="hidden" name="clave" value="">
+                        <button type="submit" class="btn-delete">Eliminar</button>
+                    </form>
+                </div>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="6" class="text-muted">No hay componentes registrados.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
     <!-- Formulario Oculto para Editar Componente -->
     <form id="form-editar-componente" action="" method="POST" style="display: none;">
         <input type="hidden" name="nombre" id="edit-comp-nombre">

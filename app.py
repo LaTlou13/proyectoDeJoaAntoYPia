@@ -224,7 +224,7 @@ def nuevo_prestamo():
 
     cursor.close()
     conexion.close()
-    return render_template('nuevo_prestamo.html', componentes=componentes, equipos=equipos)
+    return render_template('nuevo_prestamo.html', componentes=componentes, equipos=equipos) 
 
 @app.route('/devolver/<int:id_prestamo>', methods=['POST'])
 def devolver(id_prestamo):
@@ -377,14 +377,21 @@ def eliminar_componente(id_componente):
     cursor = conexion.cursor()
 
     try:
+        # 1. Poner en NULL la clave foránea en la tabla prestamos
+        cursor.execute("UPDATE prestamos SET id_componente = NULL WHERE id_componente = %s", (id_componente,))
+
+        # 2. Eliminar referencias en las tablas hijas
         cursor.execute("DELETE FROM detalle_prestamos WHERE id_componente = %s", (id_componente,))
         cursor.execute("DELETE FROM equipo_componentes WHERE id_componente = %s", (id_componente,))
+        
+        # 3. Eliminar el componente principal
         cursor.execute("DELETE FROM componentes WHERE id_componente = %s", (id_componente,))
 
         conexion.commit()
     except mysql.connector.Error as err:
         conexion.rollback()
-        print(f"Error al eliminar componente: {err}")
+        print(f"DEBUG - Error al eliminar componente: {err}")
+        return f"<script>alert('Error en MySQL: {err}'); window.location.href='/';</script>"
     finally:
         cursor.close()
         conexion.close()
