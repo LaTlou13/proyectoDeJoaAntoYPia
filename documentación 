@@ -1,0 +1,90 @@
+୨୧ DOCUMENTACIÓN TÉCNICA ୨୧
+⊹ Sistema de Gestión / Panel Club de Ciencias ⊹
+Grupo 5 · Antonia Jiménez · María Pía Moreno · Joaquín Rodríguez
+─────────── ୨୧ ──────────
+
+1. Introducción y Requisitos
+♡ ¿Qué hace el software y cuál es su objetivo principal?
+El Sistema de Gestión / Panel Club de Ciencias administra el inventario de insumos, componentes de robótica/electrónica y equipos informáticos, y controla préstamos, vencimientos y devoluciones.
+♡ Funciones principales
+♡ Registrar componentes e insumos.
+♡ Registrar equipos mediante código identificador.
+♡ Registrar préstamos con nombre y rol del solicitante.
+♡ Registrar fecha de retiro, fecha límite y fecha de devolución.
+♡ Controlar stock y disponibilidad.
+♡ Registrar devoluciones y actualizar estados.
+♡ Eliminar componentes o equipos mediante clave de seguridad.
+♡ Consultar componentes, equipos y préstamos desde el panel.
+♡ Rendimiento, seguridad y escalabilidad
+Rendimiento: Flask procesa las operaciones y MySQL almacena la información; el servidor controla stock y disponibilidad.
+Seguridad: las operaciones de eliminación requieren validar CLAVE_ELIMINACION. La documentación original no indica su valor.
+Escalabilidad: la separación entre interfaz, lógica del servidor y base de datos permite incorporar nuevos componentes, equipos y funciones.
+2. Arquitectura y Diseño
+♡ Arquitectura y flujo de datos
+La aplicación utiliza una arquitectura cliente-servidor. El navegador envía peticiones HTTP a Flask; Flask valida datos, aplica la lógica y consulta MySQL mediante mysql-connector-python.
+Navegador → HTTP GET/POST → Flask → SQL → MySQL → HTML/Jinja2
+♡ Modelo de datos y relaciones
+La base de datos contiene componentes, equipos_unicos, prestamos y alumnos. La tabla prestamos utiliza referencias a componentes y equipos mediante claves foráneas.
+♡ componentes: id_componente, nombre, descripcion y stock.
+♡ equipos_unicos: id_equipo, codigo_identificador, tipo, ubicacion y estado.
+♡ prestamos: id_prestamo, nombre_solicitante, rol_solicitante, id_componente, id_equipo, fecha_retiro, fecha_finalizacion y fecha_devolucion.
+♡ alumnos: dni, nombre, apellido y curso.
+♡ Lenguajes, librerías y frameworks
+♡ Python + Flask — lógica y rutas HTTP.
+♡ MySQL — persistencia.
+♡ mysql-connector-python — conexión Flask/MySQL.
+♡ HTML5 + CSS3 + JavaScript Vanilla — interfaz.
+♡ Jinja2 — vistas dinámicas.
+♡ GitHub — control de cambios.
+3. Guías de Usuario y Operación
+♡ Puesta en marcha
+♡ Clonar el repositorio y entrar al proyecto.
+♡ Crear y activar el entorno virtual.
+♡ Instalar Flask y mysql-connector-python.
+♡ Importar la base club_ciencias.
+♡ Configurar credenciales MySQL en app.py.
+♡ Ejecutar python app.py.
+♡ Abrir http://127.0.0.1:5000.
+♡ Tutorial para el usuario final
+Para registrar un componente: abrir el formulario, completar los datos y confirmar. Para un equipo, ingresar también su código identificador.
+Para realizar un préstamo: ingresar nombre y rol, seleccionar componente/equipo disponible, establecer fecha límite y confirmar. El sistema actualiza el stock o el estado.
+Para devolver: seleccionar el préstamo. El sistema registra la fecha y restituye stock o cambia el equipo a «Disponible».
+♡ Rutas, métodos y ejemplos de peticiones
+Ruta
+Método
+Acción
+/
+GET
+Muestra el panel principal.
+/nuevo_equipo
+GET / POST
+Muestra formulario y registra equipo.
+/nuevo_componente
+GET / POST
+Muestra formulario y registra componente.
+/eliminar_componente/
+POST
+Elimina tras validar la clave.
+/eliminar_equipo/
+POST
+Elimina tras validar la clave.
+/nuevo_prestamo
+GET / POST
+Carga y registra préstamos.
+/devolver/
+POST
+Registra devolución y actualiza stock/estado.
+
+Ejemplo GET / → solicita el panel principal. Ejemplo POST /nuevo_componente → envía datos de un componente. Ejemplo POST /nuevo_prestamo → envía datos y actualiza disponibilidad. Ejemplo POST /devolver/ → registra la devolución.
+4. Código y Mantenimiento
+♡ Guía de estilo
+♡ Usar nombres descriptivos para variables, rutas y funciones.
+♡ Mantener una estructura clara de archivos.
+♡ Separar interfaz, lógica y base de datos.
+♡ Evitar código repetido.
+♡ Comentar funciones cuando sea necesario.
+♡ Mantener organizadas las operaciones de base de datos.
+♡ Registro de versiones y actualizaciones
+El proyecto utiliza GitHub para almacenar el código y registrar cambios. Durante el desarrollo se incorporaron cancelación de préstamos, fecha de finalización, múltiples componentes, identificación de alumnos/profesores, computadoras, cargadores y alargues, control del estado de devolución y correcciones.
+Para futuras actualizaciones se recomienda usar commits descriptivos y mantener una versión estable antes de cambios importantes.
+                          ₊˚⊹♡ Fin ♡⊹˚₊
